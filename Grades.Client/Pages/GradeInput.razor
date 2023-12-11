@@ -1,0 +1,106 @@
+﻿@page "/input"
+@using BlazorStrap
+@using BlazorStrap.V5
+@using System.ComponentModel.DataAnnotations
+@inject IStorageService _localStorage
+@inject IGradeService _gradeService;
+
+
+@if (_isLoading)
+{
+    <BSContainer>
+        <BSRow>
+            <BSCol Column="12">
+                <BSSpinner Color="BSColor.Primary" />
+            </BSCol>
+        </BSRow>
+    </BSContainer>
+}
+else
+{
+    <BSContainer>
+        <BSRow>
+            <BSCol Column="6">
+                <h3>Arvosana</h3>
+            </BSCol>
+        </BSRow>
+        <BSRow>
+            <BSCol Column="6">
+                <BSCard CardType="CardType.Card" style="width: 18rem;">
+                    <BSCard CardType="CardType.Body">
+                        <BSForm Model="_gradeInputCollection" EditContext="_ctx" OnSubmit="OnCalculate" OnReset="OnReset">
+                            <DataAnnotationsValidator />
+                            @foreach (var item in _gradeInputCollection.Items)
+                             {
+                                 <BSLabel>@item.Label</BSLabel>
+                                 <BSInput InputType="InputType.Text" @bind-Value="item.Rating" ValidateOnChange="true" ValidateOnInput="true"/>
+                                 <BSFeedback For="@(() => item.Rating)" />
+                             }
+                            <BSButton Color="BSColor.Primary" IsOutlined="true" IsSubmit="true">Laske</BSButton>
+                            <BSButton Color="BSColor.Danger" IsOutlined="true" IsReset="true">Tyhjennä</BSButton>
+                        </BSForm>
+                    </BSCard>
+                </BSCard>
+            </BSCol>
+            <BSCol Column="6">
+                @if (_isGradeVisible)
+                {
+                    <h1>@_grade?.WeightedGrade</h1>
+                    <p>@_grade?.Calculations.WeightedAverageCalculation</p>
+                    <p>Ilman painotuksia <em>@_grade?.RegularGrade</em></p>
+                }
+            </BSCol>
+        </BSRow>
+    </BSContainer>
+}
+
+
+@code {
+    private bool _isLoading = true;
+    private GradeInputCollection _gradeInputCollection = new([]);
+    private bool _isGradeVisible;
+    private EditContext? _ctx;
+    private GradeResponse? _grade;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var issues = await _localStorage.GetGradingIssues();
+        _gradeInputCollection = new(issues.Select(x => new GradeInputModel(x.Name, x.Percentage)).ToArray());
+        _ctx = new EditContext(_gradeInputCollection);
+        _isLoading = false;
+    }
+
+    private class GradeInputCollection
+    {
+        public List<GradeInputModel> Items { get; set; }
+
+        public GradeInputCollection(params GradeInputModel[] items)
+        {
+            Items = items.ToList();
+        }
+    }
+    public void OnReset(IBSForm bSForm)
+    {
+        bSForm.Reset();
+        _isGradeVisible = false;
+        _grade = null;
+    }
+
+    public void OnCalculate(EditContext e)
+    {
+        if (e.Validate())
+        {
+            _isGradeVisible = true;
+            var model = _ctx?.Model as GradeInputCollection;
+            
+            if (model == null || model.Items == null)
+            {
+                return;
+            }
+
+            var response = _gradeService.GetGrade(model.Items);
+            _grade = response;
+        }
+    }
+   
+}

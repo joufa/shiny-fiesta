@@ -1,0 +1,106 @@
+﻿@page "/settings"
+@using BlazorStrap
+@using BlazorStrap.V5
+@inject IStorageService _localStorage
+@inject IGradeService _gradeService
+
+<PageTitle>Asetukset</PageTitle>
+
+<BSContainer>
+    <BSRow>
+        <BSCol Column="6">
+            <h3>Asetukset</h3>
+            <BSButton Color="BSColor.Primary" OnClick="AddUnlockedGradeItem">Lisää uusi arvosana</BSButton>
+        </BSCol>
+        <BSCol Column="6">
+            <BSBadge Color="BSColor.Warning">Muokkaus kesken</BSBadge>
+        </BSCol>
+    </BSRow>
+    <BSRow>
+        @foreach (var item in Items)
+        {
+            <BSCol>
+                <BSCard CardType="CardType.Card" style="width: 18rem;">
+                    <BSCard CardType="CardType.Body">
+                        <BSForm Model="item" OnSubmit="OnLock">
+                            <DataAnnotationsValidator />
+                            <BSLabel>Kuvaus</BSLabel>
+                            <BSInput InputType="InputType.Text" @bind-Value="item.Name" ValidateOnInput="true" IsReadonly="item.Locked"/>
+                            <BSFeedback For="@(() => item.Name)"/>
+                            <BSLabel>Prosentti</BSLabel>
+                            <BSInput InputType="InputType.Number" @bind-Value="item.Percentage" ValidateOnInput="true" IsReadonly="item.Locked"/>
+                            <BSFeedback For="@(() => item.Percentage)" />
+                            <BSButton Color="BSColor.Primary" IsOutlined="true" IsSubmit="true">Lukitse</BSButton>
+                            <BSButton Color="BSColor.Danger" IsOutlined="true" OnClick="() => DeleteGradeItem(item.Id)">Poista</BSButton>
+                        </BSForm>
+                    </BSCard>
+                </BSCard>
+            </BSCol>
+        }
+    </BSRow>
+    <BSRow>
+        <BSCol Column="12">
+            <BSLabel>@SaveInfoText</BSLabel><br/>
+                <BSButton Color="BSColor.Primary" IsDisabled="SavingDisabled" OnClick="() => SaveCollection()">Tallenna arvosanat</BSButton>
+        </BSCol>
+    </BSRow>
+</BSContainer>
+
+    @code {
+
+    public class LabelModel
+    {
+        public BSColor Color { get; set; }
+        public string? Text { get; set; }
+    }
+
+    public bool Loaded { get; set; }
+    public List<GradingIssue> Items { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Items = await _localStorage.GetGradingIssues();
+
+        Loaded = true;
+
+    }
+    public string SaveInfoText { get; set; } = "";
+    public bool SavingDisabled { get; set; } = true;
+
+    private bool ValidateContext(EditContext e)
+    {
+        return true;
+    }
+    private void OnLock(EditContext e)
+    {
+        var model = e.Model as GradingIssue;
+        var item = Items.First(x => x.Id == model?.Id);
+        item.Locked = true;
+        ValidateCollection();
+    }
+
+    public void DeleteGradeItem(Guid id)
+    {
+        Items.Remove(Items.First(x => x.Id == id));
+        ValidateCollection();
+    }
+
+    public void ValidateCollection()
+    {
+        var validateResult = _gradeService.ValidateCollection(Items);
+
+        SaveInfoText = validateResult.ErrorText ?? "";
+        SavingDisabled = !validateResult.IsSuccess;
+    }
+
+    public async Task SaveCollection()
+    {
+        await _localStorage.SaveGradingIssues(Items);
+    }
+
+    public void AddUnlockedGradeItem()
+    {
+        Items.Add(_gradeService.GetNew());
+        ValidateCollection();
+    }
+}
