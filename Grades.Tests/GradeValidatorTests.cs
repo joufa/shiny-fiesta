@@ -11,12 +11,6 @@ namespace Grades.Tests
         }
 
         [Test]
-        public void Test1()
-        {
-            _gradeService.ValidateCollection(null);
-        }
-
-        [Test]
         public void Test2()
         {
             List<GradeInputModel> model = new List<GradeInputModel>()

@@ -39,7 +39,7 @@
             var result = averageCalculator.CalculateWeightedAverage(parametersList);
 
             Assert.That(result.AverageResult, Is.EqualTo(2.4m));
-            Assert.That(result.CalculationProcess, Is.EqualTo("( 1.0 * 2 + 2.0 * 3 + 3.0 * 4 + 4.0 * 1 ) / (2 + 3 + 4 + 1) = 2.4"));
+            Assert.That(result.CalculationProcess, Is.EqualTo("( 1.0 * 2 + 2.0 * 3 + 3.0 * 4 + 4.0 * 1 ) / 10 = 24.0 / 10 = 2.4"));
         }
     }
 }

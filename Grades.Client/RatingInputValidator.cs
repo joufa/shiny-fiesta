@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace Grades
 {
@@ -31,7 +32,7 @@ namespace Grades
         {
             input = input.Replace(',', '.');
             // Try parsing the input as a decimal
-            if (decimal.TryParse(input, out decimal number))
+            if (decimal.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal number))
             {
                 var integerPart = (int)number;
                 decimal fractionalPart = number % 1;

@@ -31,7 +31,7 @@ namespace Grades.Tests
                 Locked = true,
             };
 
-            string expected = "{\"Id\":\"00000000-0000-0000-0000-000000000001\",\"Name\":\"Maths\",\"Percentage\":80,\"Saved\":true}";
+            string expected = "{\"Id\":\"00000000-0000-0000-0000-000000000001\",\"Name\":\"Maths\",\"Percentage\":80,\"Locked\":true}";
 
             var json = JsonSerializer.Serialize(issue);
             
@@ -42,7 +42,7 @@ namespace Grades.Tests
         public void DeserializeGradingIssue()
         {
 
-            string json = "{\"Id\":\"00000000-0000-0000-0000-000000000001\",\"Name\":\"Maths\",\"Percentage\":80,\"Saved\":true}";
+            string json = "{\"Id\":\"00000000-0000-0000-0000-000000000001\",\"Name\":\"Maths\",\"Percentage\":80,\"Locked\":true}";
 
             GradingIssue? deserialized = JsonSerializer.Deserialize<GradingIssue>(json);
 
@@ -80,7 +80,7 @@ namespace Grades.Tests
 
             string json = JsonSerializer.Serialize(issues);
 
-            var expected = @"[{""Id"":""00000000-0000-0000-0000-000000000001"",""Name"":""Maths"",""Percentage"":30,""Saved"":true},{""Id"":""00000000-0000-0000-0000-000000000002"",""Name"":""Physics"",""Percentage"":70,""Saved"":true}]";
+            var expected = @"[{""Id"":""00000000-0000-0000-0000-000000000001"",""Name"":""Maths"",""Percentage"":30,""Locked"":true},{""Id"":""00000000-0000-0000-0000-000000000002"",""Name"":""Physics"",""Percentage"":70,""Locked"":true}]";
 
             Assert.That(expected, Is.EqualTo(json));
         }
@@ -90,7 +90,7 @@ namespace Grades.Tests
         {
             _storageServiceMock
                 .Setup(x => x.GetItemAsStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(@"[{""Id"":""00000000-0000-0000-0000-000000000001"",""Name"":""Maths"",""Percentage"":30,""Saved"":true},{""Id"":""00000000-0000-0000-0000-000000000002"",""Name"":""Physics"",""Percentage"":70,""Saved"":true}]");
+                .ReturnsAsync(@"[{""Id"":""00000000-0000-0000-0000-000000000001"",""Name"":""Maths"",""Percentage"":30,""Locked"":true},{""Id"":""00000000-0000-0000-0000-000000000002"",""Name"":""Physics"",""Percentage"":70,""Locked"":true}]");
 
             var issues = await _storageService.GetGradingIssues();
 
